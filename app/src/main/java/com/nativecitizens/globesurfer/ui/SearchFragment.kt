@@ -32,6 +32,8 @@ class SearchFragment @Inject constructor() : Fragment() {
 
     private val searchViewModel: SearchViewModel by activityViewModels()
 
+    private var selectedLanguageCode = "English:en"
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -45,6 +47,7 @@ class SearchFragment @Inject constructor() : Fragment() {
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner){
             requireActivity().finish()
         }
+
 
         val adapterCountryInitial = CountryInitialListAdapter(CountryListClickListener {
             findNavController().navigate(SearchFragmentDirections
@@ -68,18 +71,36 @@ class SearchFragment @Inject constructor() : Fragment() {
             }
         })
 
+        binding.languageBtn.setOnClickListener {
+            findNavController().navigate(SearchFragmentDirections.actionSearchFragmentToDialogLanguage(selectedLanguageCode))
+        }
+
+
+        parentFragmentManager.setFragmentResultListener(
+            "Language",
+            viewLifecycleOwner
+        ) { req, res ->
+            if (req == "Language") {
+                selectedLanguageCode = res.getString("SelectedLanguage") ?: "English:en"
+                binding.languageBtn.text = res.getString("SelectedLanguage")?.split(":")?.get(1) ?: "en"
+                searchViewModel.setSelectedTranslation(res.getString("SelectedLanguage")?.split(":")?.get(1) ?: "en")
+            }
+        }
 
         searchViewModel.countryListResponse.observe(viewLifecycleOwner){
             when(it){
                 is ResponseState.Loading -> {
                     binding.loadingProgress.visibility = View.VISIBLE
                     binding.connectionError.visibility = View.GONE
+                    binding.searchBox.isEnabled = false
                 }
                 is ResponseState.Error -> {
+                    binding.searchBox.isEnabled = false
                     binding.loadingProgress.visibility = View.GONE
                     binding.connectionError.visibility = View.VISIBLE
                 }
                 is ResponseState.Success -> {
+                    binding.searchBox.isEnabled = true
                     if (it.response?.isNotEmpty() == true) {
                         val countryInitialsList: MutableList<String> = mutableListOf()
                         val listOfMapOfCountries: MutableList<Map<String, List<Country>>> = mutableListOf()

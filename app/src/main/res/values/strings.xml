@@ -13,6 +13,7 @@
     <string name="time_zone_label">Time zone</string>
     <string name="driving_side_label">Driving side</string>
     <string name="languages_label">Languages</string>
+    <string name="english_launguage_code">EN</string>
 
 
     <string-array name="language_list">

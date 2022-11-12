@@ -16,7 +16,8 @@ data class Country(
     var currency: String?,
     var timeZone: String?,
     var drivingSide: String?,
-    var flagUrl: String?
+    var flagUrl: String?,
+    var translations: String?
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString(),
@@ -25,6 +26,7 @@ data class Country(
         parcel.readString(),
         parcel.readString(),
         parcel.readDouble(),
+        parcel.readString(),
         parcel.readString(),
         parcel.readString(),
         parcel.readString(),
@@ -43,6 +45,7 @@ data class Country(
         parcel.writeString(timeZone)
         parcel.writeString(drivingSide)
         parcel.writeString(flagUrl)
+        parcel.writeString(translations)
     }
 
     override fun describeContents(): Int {
@@ -59,8 +62,3 @@ data class Country(
         }
     }
 }
-
-
-data class LanguageList(
-    var languages: MutableList<String>?
-)

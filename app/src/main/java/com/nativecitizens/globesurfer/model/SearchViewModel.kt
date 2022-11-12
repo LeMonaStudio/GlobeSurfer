@@ -2,10 +2,13 @@ package com.nativecitizens.globesurfer.model
 
 
 
+import android.app.Application
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.nativecitizens.globesurfer.R
 import com.nativecitizens.globesurfer.network.CountryApiService
 import com.nativecitizens.globesurfer.util.ResponseState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +24,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
+    private val application: Application,
     private val uiScope: CoroutineScope,
     private val countryApiService: CountryApiService): ViewModel() {
 
@@ -28,6 +32,9 @@ class SearchViewModel @Inject constructor(
     val countryListResponse: LiveData<ResponseState<MutableList<Country>>> get() = _countryListResponse
 
     private var countryList: MutableList<Country> = mutableListOf()
+    private var tempCountryListForTranslation: MutableList<Country> = mutableListOf()
+
+    private var selectedLanguageCode = "en"
 
 
     init {
@@ -60,7 +67,7 @@ class SearchViewModel @Inject constructor(
             for (i in 0 until size){
                 getCountryDetails(jsonArray.get(i).toString())
                 if (i == size-1){
-                    _countryListResponse.value = ResponseState.Success(countryList)
+                    getTranslationForDisplay()
                 }
             }
         }
@@ -83,10 +90,12 @@ class SearchViewModel @Inject constructor(
                 val timeZone = jsonObject.getJSONArray("timezones").getString(0) ?: ""
                 val drivingSide = jsonObject.getJSONObject("car").getString("side").replaceFirstChar { char -> char.uppercase() } ?: ""
                 val flagUrl = jsonObject.getJSONObject("flags").getString("png") ?: ""
+                val translations: String = "en,$name:" + getTranslationsFromApi(jsonObject.getJSONObject("translations"))
 
                 withContext(Dispatchers.Main) {
-                    val country = Country(name, capital, population, continent, language, area, currency, timeZone, drivingSide, flagUrl)
+                    val country = Country(name, capital, population, continent, language, area, currency, timeZone, drivingSide, flagUrl, translations)
                     countryList.add(country)
+                    tempCountryListForTranslation.add(country)
                 }
 
             } catch (exception: Exception){
@@ -109,6 +118,23 @@ class SearchViewModel @Inject constructor(
         return countryLanguage
     }
 
+    private fun getTranslationsFromApi(jsonObject: JSONObject): String {
+        val languages: List<String> = application.resources.getStringArray(R.array.language_list).toList()
+        var stringOfTranslations = ""
+
+        languages.forEach { lang ->
+            val code = lang.split(":")[1]
+            if (code != "en"){
+                val translation = jsonObject.getJSONObject(code).getString("official") ?: "No translation"
+                stringOfTranslations += "$code,$translation:"
+            }
+        }
+        return stringOfTranslations
+    }
+
+
+
+
     fun searchCountry(searchString: String){
         if (searchString.isNotEmpty()){
             val newList: MutableList<Country> = mutableListOf()
@@ -117,9 +143,33 @@ class SearchViewModel @Inject constructor(
                     newList.add(it)
                 }
             }
-            _countryListResponse.value = ResponseState.Success(newList)
+            getTranslationForDisplay(newList)
         } else {
-            _countryListResponse.value = ResponseState.Success(countryList)
+            getTranslationForDisplay()
         }
+    }
+
+
+    fun setSelectedTranslation(languageCode: String) {
+        selectedLanguageCode = languageCode
+
+        val newList: MutableList<Country> = mutableListOf()
+        countryList.forEach { country ->
+            val listOfTranslations: List<String>? = country.translations?.split(":")?.map {theList ->
+                theList.trim() }?.toList()
+
+            listOfTranslations?.forEach { str ->
+                if (str.startsWith(selectedLanguageCode)){
+                    country.name = str.split(",")[1]
+                }
+            }
+            newList.add(country)
+        }
+        getTranslationForDisplay(newList)
+    }
+
+    private fun getTranslationForDisplay(newList: MutableList<Country>? = null){
+        _countryListResponse.value = if (newList != null)
+            ResponseState.Success(newList) else ResponseState.Success(countryList)
     }
 }
