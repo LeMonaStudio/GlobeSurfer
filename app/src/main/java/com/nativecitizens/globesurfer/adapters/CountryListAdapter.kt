@@ -2,9 +2,14 @@ package com.nativecitizens.globesurfer.adapters
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import com.nativecitizens.globesurfer.R
 import com.nativecitizens.globesurfer.databinding.DisplayCountryViewBinding
 import com.nativecitizens.globesurfer.model.Country
 
@@ -54,8 +59,18 @@ class CountryListAdapter (private val clickListener: CountryListClickListener)
             clickListener: CountryListClickListener,
             ctx: Context
         ) {
+            val uri = Uri.parse(country.flagUrl)
+            Log.i("Flag", country.flagUrl)
+            Glide.with(ctx)
+                .load(uri)
+                .apply(
+                    RequestOptions()
+                        .placeholder(R.drawable.ic_image_placeholder)
+                        .error(R.drawable.ic_image_loading_error))
+                .into(binding.countryFlag)
 
-            //
+            binding.countryName.text = country.name
+            binding.countryCapital.text = country.capital
         }
     }
 }

@@ -2,16 +2,15 @@ package com.nativecitizens.globesurfer.model
 
 
 
-import android.app.Application
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.nativecitizens.globesurfer.di.countryApiServiceWithMoshi
-import com.nativecitizens.globesurfer.di.countryApiServiceWithScalar
 import com.nativecitizens.globesurfer.network.CountryApiService
+import com.nativecitizens.globesurfer.util.ResponseState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import org.json.JSONArray
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
@@ -22,68 +21,79 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val application: Application,
     private val uiScope: CoroutineScope,
-    @countryApiServiceWithMoshi private val countryApiServiceMoshi: CountryApiService,
-    @countryApiServiceWithScalar private val countryApiServiceScalar: CountryApiService): ViewModel() {
+    private val countryApiService: CountryApiService): ViewModel() {
 
-    private var _countryString = MutableStateFlow("")
-    val countryString = _countryString.asStateFlow()
+    private var _countryListResponse = MutableLiveData<ResponseState<MutableList<Country>>>()
+    val countryListResponse: LiveData<ResponseState<MutableList<Country>>> get() = _countryListResponse
 
-    private var countryNameSearchBaseUrl = "https://restcountries.com/v3.1/name/"
+    private var countryList: MutableList<Country> = mutableListOf()
 
 
     init {
-        getCountryJsonString()
+        _countryListResponse.value = ResponseState.Loading
+        getCountriesJsonString()
     }
 
 
-    private fun getCountryJsonString(){
-        countryApiServiceMoshi.getCountriesByName().enqueue(object : Callback<List<CountryName>> {
-            override fun onResponse(call: Call<List<CountryName>>, response: Response<List<CountryName>>) {
-                if (response.body()?.isNotEmpty() == true){
-                    //_countryString.value = "${response.body()?.get(0)?.name?.official}"
-                    uiScope.launch {
-                        getCountryDetailsByName("${response.body()?.get(50)?.name?.official}")
+    private fun getCountriesJsonString(){
+        uiScope.launch {
+            countryApiService.getCountryJsonString().enqueue(object : Callback<String> {
+                override fun onResponse(call: Call<String>, response: Response<String>) {
+                    if (response.body()?.isNotEmpty() == true){
+                        val jsonArray = JSONArray(response.body())
+                        fetchCountryList(jsonArray)
                     }
                 }
-            }
-            override fun onFailure(call: Call<List<CountryName>>, t: Throwable) {
-                _countryString.value = "Failure: ${t.message}"
-            }
-        })
+                override fun onFailure(call: Call<String>, t: Throwable) {
+                    _countryListResponse.value = ResponseState.Error("Error: ${t.message}")
+                }
+            })
+        }
     }
 
 
-    private fun getCountryDetailsByName(countryName: String) {
-        countryNameSearchBaseUrl += countryName
+    private fun fetchCountryList(jsonArray: JSONArray) {
+        uiScope.launch {
+            val size = jsonArray.length()
 
-        countryApiServiceScalar.getCountryByName(countryNameSearchBaseUrl).enqueue(object : Callback<String> {
-
-            override fun onResponse(call: Call<String>, response: Response<String>) {
-
-                if (response.body()?.isNotEmpty() == true){
-                    val jsonObject = JSONObject("${response.body()?.drop(1)?.dropLast(1)}")
-
-                    val name = jsonObject.getJSONObject("name").getString("official")
-                    val capital = jsonObject.getJSONArray("capital").getString(0)
-                    val population = jsonObject.getInt("population")
-                    val continent = jsonObject.getJSONArray("continents").getString(0)
-                    val language = getCountryLanguages(jsonObject.getJSONObject("languages")).joinToString(", ")
-                    val area = jsonObject.getDouble("area")
-                    val currency = jsonObject.getJSONObject("currencies").getJSONObject("${jsonObject.getJSONObject("currencies").names()?.get(0)}").getString("name")
-                    val timeZone = jsonObject.getJSONArray("timezones").getString(0)
-                    val drivingSide = jsonObject.getJSONObject("car").getString("side").replaceFirstChar { char -> char.uppercase() }
-
-                    val country = Country(name, capital, population, continent, language, area, currency, timeZone, drivingSide)
-                    _countryString.value = country.toString()
+            for (i in 0 until size){
+                getCountryDetails(jsonArray.get(i).toString())
+                if (i == size-1){
+                    _countryListResponse.value = ResponseState.Success(countryList)
                 }
             }
+        }
+    }
 
-            override fun onFailure(call: Call<String>, t: Throwable) {
-                _countryString.value = "Failure: ${t.message}"
+
+    private suspend fun getCountryDetails(countryJsonString: String) {
+        withContext(Dispatchers.IO) {
+
+            val jsonObject = JSONObject(countryJsonString)
+
+            try {
+                val name = jsonObject.getJSONObject("name").getString("common") ?: ""
+                val capital = jsonObject.getJSONArray("capital").getString(0) ?: ""
+                val population = jsonObject.getInt("population") ?: 0
+                val continent = jsonObject.getJSONArray("continents").getString(0) ?: ""
+                val language = getCountryLanguages(jsonObject.getJSONObject("languages")).joinToString(", ") ?: ""
+                val area = jsonObject.getDouble("area") ?: 0.0
+                val currency = jsonObject.getJSONObject("currencies").getJSONObject("${jsonObject.getJSONObject("currencies").names()?.get(0)}").getString("name") ?: ""
+                val timeZone = jsonObject.getJSONArray("timezones").getString(0) ?: ""
+                val drivingSide = jsonObject.getJSONObject("car").getString("side").replaceFirstChar { char -> char.uppercase() } ?: ""
+                val flagUrl = jsonObject.getJSONObject("flags").getString("png") ?: ""
+
+                withContext(Dispatchers.Main) {
+                    val country = Country(name, capital, population, continent, language, area, currency, timeZone, drivingSide, flagUrl)
+                    countryList.add(country)
+                }
+
+            } catch (exception: Exception){
+                Log.i("Error", "${exception.message}")
             }
-        })
+
+        }
     }
 
 
@@ -91,11 +101,25 @@ class SearchViewModel @Inject constructor(
         val numberOfLanguage: Int = languageJsonObject.names()?.length() ?: 0
         val countryLanguage = mutableListOf<String>()
         if (numberOfLanguage >= 1){
-            for (i in 0..numberOfLanguage -1){
+            for (i in 0 until numberOfLanguage){
                 countryLanguage.add(languageJsonObject.getString(languageJsonObject.names()?.get(i).toString()))
             }
         }
 
         return countryLanguage
+    }
+
+    fun searchCountry(searchString: String){
+        if (searchString.isNotEmpty()){
+            val newList: MutableList<Country> = mutableListOf()
+            countryList.forEach {
+                if (it.name.startsWith(searchString, true)){
+                    newList.add(it)
+                }
+            }
+            _countryListResponse.value = ResponseState.Success(newList)
+        } else {
+            _countryListResponse.value = ResponseState.Success(countryList)
+        }
     }
 }

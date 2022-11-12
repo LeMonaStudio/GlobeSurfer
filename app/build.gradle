@@ -79,4 +79,7 @@ dependencies {
 
     //JSoup
     implementation 'org.jsoup:jsoup:1.15.3'
+
+    //Glide (For Image fetching and processing)
+    implementation 'com.github.bumptech.glide:glide:4.13.1'
 }

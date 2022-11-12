@@ -1,8 +1,6 @@
 package com.nativecitizens.globesurfer.di
 
 import com.nativecitizens.globesurfer.network.CountryApiService
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,9 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
-import javax.inject.Qualifier
 
 
 @Module
@@ -33,28 +29,9 @@ object ViewModelModule {
         return CoroutineScope(Dispatchers.Main + viewModelJob)
     }
 
-    @countryApiServiceWithMoshi
     @ViewModelScoped
     @Provides
-    fun provideCountryApiServiceWithHilt(): CountryApiService {
-        val baseUrl = "https://restcountries.com/v3.1/"
-
-        val moshi = Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
-
-        val retrofit = Retrofit.Builder()
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .baseUrl(baseUrl)
-            .build()
-
-        return retrofit.create(CountryApiService::class.java)
-    }
-
-    @countryApiServiceWithScalar
-    @ViewModelScoped
-    @Provides
-    fun provideCountryApiServiceWithScalar(): CountryApiService {
+    fun provideCountryApiService(): CountryApiService {
         val baseUrl = "https://restcountries.com/v3.1/"
 
         val retrofit = Retrofit.Builder()
@@ -65,12 +42,3 @@ object ViewModelModule {
         return retrofit.create(CountryApiService::class.java)
     }
 }
-
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class countryApiServiceWithMoshi
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class countryApiServiceWithScalar

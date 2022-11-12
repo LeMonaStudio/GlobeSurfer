@@ -10,15 +10,6 @@ data class Country(
     var area: Double,
     var currency: String,
     var timeZone: String,
-    var drivingSize: String
-)
-
-
-//Fetch country name using CountryApiService
-data class CountryName(
-    var name: CountryNameJson
-)
-
-data class CountryNameJson(
-    var official: String
+    var drivingSize: String,
+    var flagUrl: String
 )
