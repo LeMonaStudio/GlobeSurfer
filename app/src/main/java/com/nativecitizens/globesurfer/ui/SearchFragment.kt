@@ -10,10 +10,13 @@ import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.nativecitizens.globesurfer.R
 import com.nativecitizens.globesurfer.adapters.CountryInitialListAdapter
+import com.nativecitizens.globesurfer.adapters.CountryListClickListener
 import com.nativecitizens.globesurfer.databinding.FragmentSearchBinding
 import com.nativecitizens.globesurfer.model.Country
 import com.nativecitizens.globesurfer.model.SearchViewModel
@@ -43,7 +46,10 @@ class SearchFragment @Inject constructor() : Fragment() {
             requireActivity().finish()
         }
 
-        val adapterCountryInitial = CountryInitialListAdapter()
+        val adapterCountryInitial = CountryInitialListAdapter(CountryListClickListener {
+            findNavController().navigate(SearchFragmentDirections
+                .actionSearchFragmentToDetailsFragment(it))
+        })
         val layoutManagerCountryInitial = LinearLayoutManager(requireContext(),RecyclerView.VERTICAL,false)
 
 
@@ -79,14 +85,14 @@ class SearchFragment @Inject constructor() : Fragment() {
                         val listOfMapOfCountries: MutableList<Map<String, List<Country>>> = mutableListOf()
 
                         it.response.forEach {country ->
-                            countryInitialsList.add(country.name.get(0).toString())
+                            countryInitialsList.add(country.name?.get(0).toString())
                         }
 
                         countryInitialsList.distinct().sorted().forEach { initial ->
                             val countryList: MutableList<Country> = mutableListOf()
 
                             it.response.forEach { country ->
-                                if (country.name.startsWith(initial)){
+                                if (country.name?.startsWith(initial) == true){
                                     countryList.add(country)
                                 }
                             }

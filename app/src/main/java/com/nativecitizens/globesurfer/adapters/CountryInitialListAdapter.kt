@@ -11,7 +11,8 @@ import com.nativecitizens.globesurfer.R
 import com.nativecitizens.globesurfer.model.Country
 
 
-class CountryInitialListAdapter() : RecyclerView.Adapter<CountryInitialListAdapter.ViewHolder>(){
+class CountryInitialListAdapter(private val clickListener: CountryListClickListener)
+    : RecyclerView.Adapter<CountryInitialListAdapter.ViewHolder>(){
 
     var data = listOf<Map<String, List<Country>>>()
         @SuppressLint("NotifyDataSetChanged")
@@ -34,7 +35,7 @@ class CountryInitialListAdapter() : RecyclerView.Adapter<CountryInitialListAdapt
         val countryInitialAndList = data[position]
         countryListChildRv = holder.itemView.findViewById(R.id.country_list_child)
 
-        holder.bind(holder.itemView.context, countryInitialAndList, countryListChildRv)
+        holder.bind(holder.itemView.context, countryInitialAndList, countryListChildRv, clickListener)
     }
 
 
@@ -55,12 +56,14 @@ class CountryInitialListAdapter() : RecyclerView.Adapter<CountryInitialListAdapt
         fun bind(
             ctx: Context,
             countryInitialAndList: Map<String, List<Country>>,
-            countryListChildRv: RecyclerView
+            countryListChildRv: RecyclerView,
+            clickListener: CountryListClickListener
         ) {
             val countryInitial = countryInitialAndList.keys.elementAt(0)
             binding.countryInitial.text = countryInitial
 
             val adapterCountryViewList = CountryListAdapter(CountryListClickListener{
+                clickListener.onClick(country = it)
             })
             val layoutManagerCountryViewList = LinearLayoutManager(ctx, RecyclerView.VERTICAL, false)
 

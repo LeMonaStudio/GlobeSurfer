@@ -113,7 +113,7 @@ class SearchViewModel @Inject constructor(
         if (searchString.isNotEmpty()){
             val newList: MutableList<Country> = mutableListOf()
             countryList.forEach {
-                if (it.name.startsWith(searchString, true)){
+                if (it.name?.startsWith(searchString, true) == true){
                     newList.add(it)
                 }
             }

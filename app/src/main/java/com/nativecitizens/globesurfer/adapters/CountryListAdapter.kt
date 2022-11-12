@@ -59,18 +59,24 @@ class CountryListAdapter (private val clickListener: CountryListClickListener)
             clickListener: CountryListClickListener,
             ctx: Context
         ) {
-            val uri = Uri.parse(country.flagUrl)
-            Log.i("Flag", country.flagUrl)
-            Glide.with(ctx)
-                .load(uri)
-                .apply(
-                    RequestOptions()
-                        .placeholder(R.drawable.ic_image_placeholder)
-                        .error(R.drawable.ic_image_loading_error))
-                .into(binding.countryFlag)
+            if (!country.flagUrl.isNullOrEmpty()){
+                val uri = Uri.parse(country.flagUrl)
+                Glide.with(ctx)
+                    .load(uri)
+                    .apply(
+                        RequestOptions()
+                            .placeholder(R.drawable.ic_image_placeholder)
+                            .error(R.drawable.ic_image_loading_error))
+                    .into(binding.countryFlag)
+            }
 
             binding.countryName.text = country.name
             binding.countryCapital.text = country.capital
+
+            //OnClick
+            binding.countryViewContainer.setOnClickListener {
+                clickListener.onClick(country)
+            }
         }
     }
 }

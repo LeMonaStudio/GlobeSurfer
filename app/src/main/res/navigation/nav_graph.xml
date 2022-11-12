@@ -22,6 +22,27 @@
         android:id="@+id/searchFragment"
         tools:layout="@layout/fragment_search"
         android:name="com.nativecitizens.globesurfer.ui.SearchFragment"
-        android:label="SearchFragment" />
+        android:label="SearchFragment" >
+        <action
+            android:id="@+id/action_searchFragment_to_detailsFragment"
+            app:destination="@id/detailsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/detailsFragment"
+        tools:layout="@layout/fragment_details"
+        android:name="com.nativecitizens.globesurfer.ui.DetailsFragment"
+        android:label="DetailsFragment" >
+        <argument
+            android:name="countryClicked"
+            app:argType="com.nativecitizens.globesurfer.model.Country" />
+        <action
+            android:id="@+id/action_detailsFragment_to_dialogLanguage"
+            app:destination="@id/dialogLanguage" />
+    </fragment>
+    <dialog
+        android:id="@+id/dialogLanguage"
+        tools:layout="@layout/fragment_dialog_language"
+        android:name="com.nativecitizens.globesurfer.ui.dialogs.DialogLanguage"
+        android:label="DialogLanguage" />
 
 </navigation>
