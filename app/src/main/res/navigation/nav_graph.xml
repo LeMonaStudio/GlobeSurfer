@@ -29,6 +29,9 @@
         <action
             android:id="@+id/action_searchFragment_to_dialogLanguage"
             app:destination="@id/dialogLanguage" />
+        <action
+            android:id="@+id/action_searchFragment_to_dialogFilter"
+            app:destination="@id/dialogFilter" />
     </fragment>
     <fragment
         android:id="@+id/detailsFragment"
@@ -46,6 +49,15 @@
         android:label="DialogLanguage" >
         <argument
             android:name="currentLanguageCode"
+            app:argType="string" />
+    </dialog>
+    <dialog
+        android:id="@+id/dialogFilter"
+        android:name="com.nativecitizens.globesurfer.ui.dialogs.DialogFilter"
+        android:label="DialogFilter"
+        tools:layout="@layout/fragment_dialog_filter">
+        <argument
+            android:name="timeZoneString"
             app:argType="string" />
     </dialog>
 

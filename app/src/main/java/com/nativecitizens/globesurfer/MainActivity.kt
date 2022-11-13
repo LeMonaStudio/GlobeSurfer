@@ -13,9 +13,13 @@ import javax.inject.Inject
 class MainActivity @Inject constructor(): AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private var isDarkMode = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
+        setTheme(R.style.Theme_GlobeSurfer)
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
     }

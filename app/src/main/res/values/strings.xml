@@ -10,11 +10,14 @@
     <string name="language_label">Language</string>
     <string name="area_label">Area</string>
     <string name="currency_label">Currency</string>
-    <string name="time_zone_label">Time zone</string>
+    <string name="time_zone_label">Time Zone</string>
     <string name="driving_side_label">Driving side</string>
     <string name="languages_label">Languages</string>
     <string name="english_launguage_code">EN</string>
-
+    <string name="continent_label">Continent</string>
+    <string name="filter_label">Filter</string>
+    <string name="reset_btn_text">Reset</string>
+    <string name="show_results_btn_text">Show results</string>
 
     <string-array name="language_list">
         <item>English:en</item>
@@ -26,5 +29,15 @@
         <item>Korean:kor</item>
         <item>Japan:jpn</item>
         <item>Arabic:ara</item>
+    </string-array>
+
+    <string-array name="continent_list">
+        <item>Africa</item>
+        <item>Antarctica</item>
+        <item>Asia</item>
+        <item>Australia</item>
+        <item>Europe</item>
+        <item>North America</item>
+        <item>South America</item>
     </string-array>
 </resources>

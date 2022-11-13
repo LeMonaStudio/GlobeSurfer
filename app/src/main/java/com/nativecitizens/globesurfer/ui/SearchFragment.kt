@@ -74,6 +74,14 @@ class SearchFragment @Inject constructor() : Fragment() {
         binding.languageBtn.setOnClickListener {
             findNavController().navigate(SearchFragmentDirections.actionSearchFragmentToDialogLanguage(selectedLanguageCode))
         }
+        binding.filterBtn.setOnClickListener {
+            findNavController().navigate(SearchFragmentDirections
+                .actionSearchFragmentToDialogFilter(searchViewModel.getTimeZones()))
+        }
+        binding.darkLightModeSelector.setOnClickListener {
+            Snackbar.make(binding.root, "This feature has not been implemented due to time constraint.", Snackbar.LENGTH_INDEFINITE)
+                .setAction("OK"){}.show()
+        }
 
 
         parentFragmentManager.setFragmentResultListener(
@@ -86,6 +94,25 @@ class SearchFragment @Inject constructor() : Fragment() {
                 searchViewModel.setSelectedTranslation(res.getString("SelectedLanguage")?.split(":")?.get(1) ?: "en")
             }
         }
+
+        parentFragmentManager.setFragmentResultListener(
+            "Filter",
+            viewLifecycleOwner
+        ) { req, res ->
+            if (req == "Filter") {
+                searchViewModel.setFilter(res.getString("FilterString") ?: "")
+            }
+        }
+
+        parentFragmentManager.setFragmentResultListener(
+            "ResetFeature",
+            viewLifecycleOwner
+        ) { req, res ->
+            if (req == "ResetFeature") {
+                searchViewModel.resetFilter()
+            }
+        }
+
 
         searchViewModel.countryListResponse.observe(viewLifecycleOwner){
             when(it){
@@ -101,6 +128,9 @@ class SearchFragment @Inject constructor() : Fragment() {
                 }
                 is ResponseState.Success -> {
                     binding.searchBox.isEnabled = true
+                    binding.filterBtn.isEnabled = true
+                    binding.languageBtn.isEnabled = true
+
                     if (it.response?.isNotEmpty() == true) {
                         val countryInitialsList: MutableList<String> = mutableListOf()
                         val listOfMapOfCountries: MutableList<Map<String, List<Country>>> = mutableListOf()

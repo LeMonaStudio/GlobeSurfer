@@ -4,7 +4,6 @@ package com.nativecitizens.globesurfer.model
 
 import android.app.Application
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -32,9 +31,14 @@ class SearchViewModel @Inject constructor(
     val countryListResponse: LiveData<ResponseState<MutableList<Country>>> get() = _countryListResponse
 
     private var countryList: MutableList<Country> = mutableListOf()
-    private var tempCountryListForTranslation: MutableList<Country> = mutableListOf()
 
     private var selectedLanguageCode = "en"
+
+    private var timeZonesString = ""
+
+    private var selectedFilterList: MutableList<String> = mutableListOf()
+
+
 
 
     init {
@@ -67,7 +71,7 @@ class SearchViewModel @Inject constructor(
             for (i in 0 until size){
                 getCountryDetails(jsonArray.get(i).toString())
                 if (i == size-1){
-                    getTranslationForDisplay()
+                    getTranslatedAndFilteredForDisplay()
                 }
             }
         }
@@ -95,7 +99,6 @@ class SearchViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     val country = Country(name, capital, population, continent, language, area, currency, timeZone, drivingSide, flagUrl, translations)
                     countryList.add(country)
-                    tempCountryListForTranslation.add(country)
                 }
 
             } catch (exception: Exception){
@@ -135,6 +138,20 @@ class SearchViewModel @Inject constructor(
 
 
 
+
+    fun getTimeZones(): String {
+        countryList.forEachIndexed{index, country ->
+            if (!timeZonesString.contains(country.timeZone.toString())){
+                if (index != countryList.size -1){
+                    timeZonesString += "${country.timeZone.toString()},"
+                } else {
+                    timeZonesString += country.timeZone.toString()
+                }
+            }
+        }
+        return timeZonesString
+    }
+
     fun searchCountry(searchString: String){
         if (searchString.isNotEmpty()){
             val newList: MutableList<Country> = mutableListOf()
@@ -143,11 +160,22 @@ class SearchViewModel @Inject constructor(
                     newList.add(it)
                 }
             }
-            getTranslationForDisplay(newList)
+            getTranslatedAndFilteredForDisplay(newList)
         } else {
-            getTranslationForDisplay()
+            getTranslatedAndFilteredForDisplay()
         }
     }
+
+    fun setFilter(filterString: String) {
+        selectedFilterList = filterString.split(",").map { it.trim() }.toMutableList()
+        getTranslatedAndFilteredForDisplay()
+    }
+
+    fun resetFilter() {
+        selectedFilterList = mutableListOf()
+        getTranslatedAndFilteredForDisplay()
+    }
+
 
 
     fun setSelectedTranslation(languageCode: String) {
@@ -165,11 +193,43 @@ class SearchViewModel @Inject constructor(
             }
             newList.add(country)
         }
-        getTranslationForDisplay(newList)
+        getTranslatedAndFilteredForDisplay(newList)
     }
 
-    private fun getTranslationForDisplay(newList: MutableList<Country>? = null){
-        _countryListResponse.value = if (newList != null)
-            ResponseState.Success(newList) else ResponseState.Success(countryList)
+
+    private fun getTranslatedAndFilteredForDisplay(newList: MutableList<Country>? = null){
+        val newFilteredList: MutableList<Country> = mutableListOf()
+
+        if (selectedFilterList.isNotEmpty()) {
+            if (newList != null){
+                selectedFilterList.forEach { filter ->
+                    newList.forEach { country ->
+                        if (filter.startsWith("UTC")){
+                            //Time zone filter
+                            if (country.timeZone == filter) newFilteredList.add(country)
+                        } else {
+                            //Region or continent filter
+                            if (country.continent == filter) newFilteredList.add(country)
+                        }
+                    }
+                }
+            } else {
+                selectedFilterList.forEach { filter ->
+                    countryList.forEach { country ->
+                        if (filter.startsWith("UTC")){
+                            //Time zone filter
+                            if (country.timeZone == filter) newFilteredList.add(country)
+                        } else {
+                            //Region or continent filter
+                            if (country.continent == filter) newFilteredList.add(country)
+                        }
+                    }
+                }
+            }
+            _countryListResponse.value = ResponseState.Success(newFilteredList.distinct().sortedBy { it.name }.toMutableList())
+        } else {
+            _countryListResponse.value = if (newList != null)
+                ResponseState.Success(newList) else ResponseState.Success(countryList)
+        }
     }
 }
