@@ -18,6 +18,7 @@
     <string name="filter_label">Filter</string>
     <string name="reset_btn_text">Reset</string>
     <string name="show_results_btn_text">Show results</string>
+    <string name="dark_light_mode_content_description">Change to dark mode or light mode</string>
 
     <string-array name="language_list">
         <item>English:en</item>

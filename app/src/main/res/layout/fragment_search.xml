@@ -33,23 +33,19 @@
                     app:srcCompat="@drawable/globesurfer_logo_small"
                     android:tint="?attr/colorOnBackground"/>
 
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <com.google.android.material.button.MaterialButton
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:cardCornerRadius="100dp">
-
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:padding="4dp"
-                        android:id="@+id/dark_light_mode_selector"
-                        android:tint="?attr/colorOnBackground"
-                        app:icon="@drawable/ic_dark_mode"
-                        app:srcCompat="@drawable/ic_dark_mode" />
-                </com.google.android.material.card.MaterialCardView>
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="@string/dark_light_mode_content_description"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:id="@+id/dark_light_mode_selector"
+                    app:iconTint="?attr/colorOnBackground"
+                    app:iconGravity="textEnd"
+                    app:icon="@drawable/ic_dark_mode"
+                    app:srcCompat="@drawable/ic_dark_mode" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -62,8 +58,8 @@
                 <androidx.appcompat.widget.AppCompatEditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
                     android:id="@+id/search_box"
+                    android:drawablePadding="16dp"
                     android:textSize="18sp"
                     android:padding="16dp"
                     android:enabled="false"

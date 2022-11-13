@@ -232,4 +232,13 @@ class SearchViewModel @Inject constructor(
                 ResponseState.Success(newList) else ResponseState.Success(countryList)
         }
     }
+
+    fun prepareForReconnection() {
+        uiScope.launch {
+            delay(4_000)
+            _countryListResponse.value = ResponseState.Loading
+            delay(2_000)
+            getCountriesJsonString()
+        }
+    }
 }

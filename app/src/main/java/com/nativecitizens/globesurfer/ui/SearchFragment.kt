@@ -1,5 +1,6 @@
 package com.nativecitizens.globesurfer.ui
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -8,6 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -25,6 +28,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 
+
 @AndroidEntryPoint
 class SearchFragment @Inject constructor() : Fragment() {
 
@@ -33,6 +37,31 @@ class SearchFragment @Inject constructor() : Fragment() {
     private val searchViewModel: SearchViewModel by activityViewModels()
 
     private var selectedLanguageCode = "English:en"
+
+    private var isDarkModeActive: Boolean = false
+
+
+    override fun onStart() {
+        super.onStart()
+        when(requireContext().resources.configuration.uiMode.and(Configuration.UI_MODE_NIGHT_MASK)){
+            Configuration.UI_MODE_NIGHT_YES -> {
+                //Night mode is active
+                isDarkModeActive = true
+                binding.darkLightModeSelector.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_light_mode)
+                //change to dark mode to follow system setting, if user previously changed theme in-app
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            }
+            Configuration.UI_MODE_NIGHT_NO -> {
+                //Light mode is active
+                isDarkModeActive = false
+                binding.darkLightModeSelector.icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_dark_mode)
+                //change to light mode to follow system setting, if user previously changed theme in-app
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            }
+        }
+    }
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -79,8 +108,13 @@ class SearchFragment @Inject constructor() : Fragment() {
                 .actionSearchFragmentToDialogFilter(searchViewModel.getTimeZones()))
         }
         binding.darkLightModeSelector.setOnClickListener {
-            Snackbar.make(binding.root, "This feature has not been implemented due to time constraint.", Snackbar.LENGTH_INDEFINITE)
-                .setAction("OK"){}.show()
+            if (isDarkModeActive){
+                //change to light mode
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            } else {
+                //change to dark mode
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            }
         }
 
 
@@ -107,7 +141,7 @@ class SearchFragment @Inject constructor() : Fragment() {
         parentFragmentManager.setFragmentResultListener(
             "ResetFeature",
             viewLifecycleOwner
-        ) { req, res ->
+        ) { req, _ ->
             if (req == "ResetFeature") {
                 searchViewModel.resetFilter()
             }
@@ -125,6 +159,11 @@ class SearchFragment @Inject constructor() : Fragment() {
                     binding.searchBox.isEnabled = false
                     binding.loadingProgress.visibility = View.GONE
                     binding.connectionError.visibility = View.VISIBLE
+
+                    Snackbar.make(binding.root, "Network error! Check your internet connection.", 4_000)
+                        .show()
+
+                    searchViewModel.prepareForReconnection()
                 }
                 is ResponseState.Success -> {
                     binding.searchBox.isEnabled = true
