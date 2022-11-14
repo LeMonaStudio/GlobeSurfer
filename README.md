@@ -17,3 +17,9 @@ GlobeSurfer is an app that helps you seearch for countries around the world usin
 
 ## Challenges Faced
 Initially I was using Retrofit with the Moshi converter but some fields were returning null from the API. So I had to use the Scalar converter to return the raw JSON and use the JSON-Java Library
+
+## Nice to have
+I look forward to adding more translations for the country names in the app as the API provided and implementing Unit tests and also UI test. It would be nice to have the app display details, photos and may be videos of some cool tourist places in each country for those visiting the country just simplying planning a trip can know where to go without having to google it.
+
+## Download
+You can download the APK from [here](http://bit.ly/3Gvf055) or simply play the on Appetize [here](https://appetize.io/app/36xrdvurhmf36wscdtjj5quws4)
