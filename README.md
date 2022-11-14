@@ -11,5 +11,9 @@ GlobeSurfer is an app that helps you seearch for countries around the world usin
 ## Libraries Used
 - JetPack libraries: Activity, Fragment, RecyclerView to display scrollable list, Navigation for app navigation, Hitl for dependency injection
 - Material Design
-- Retrofit for HTTP calls + ScalarsConverter
+- Retrofit + ScalarsConverter to retrieve JSON fron API
 - Glide for Image processing and display
+- JSON-Java to parse and manipulate JSON
+
+## Challenges Faced
+Initially I was using Retrofit with the Moshi converter but some fields were returning null from the API. So I had to use the Scalar converter to return the raw JSON and use the JSON-Java Library
